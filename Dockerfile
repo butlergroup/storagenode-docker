@@ -13,12 +13,17 @@ RUN apt-get update
 RUN apt-get install -y --no-install-recommends ca-certificates supervisor unzip wget
 RUN update-ca-certificates
 
+# add non-root user
+RUN groupadd -g 10001 storj && \
+    useradd -u 10001 -g storj -d /app -s /usr/sbin/nologin storj
+
 RUN mkdir -p /var/log/supervisor /app
 
 COPY docker/ /
 
-# set permissions to allow non-root access
-RUN chmod -R a+rw /etc/supervisor /var/log/supervisor /app
+# set permissions to allow non-root access but non-world-writable
+RUN chown -R storj:storj /etc/supervisor /var/log/supervisor /app && \
+    chmod -R u+rwX,g+rX,o-rwx /etc/supervisor /var/log/supervisor /app
 # remove the default supervisord.conf
 RUN rm -rf /etc/supervisord.conf
 # create a symlink to custom supervisord config file at the default location
@@ -28,7 +33,6 @@ EXPOSE 28967
 EXPOSE 14002
 
 WORKDIR /app
-ENTRYPOINT ["/entrypoint"]
 
 ENV ADDRESS="" \
     EMAIL="" \
@@ -38,3 +42,7 @@ ENV ADDRESS="" \
     AUTO_UPDATE="true" \
     LOG_LEVEL="" \
     BINARY_STORE_DIR="/app/config/bin"
+
+# run container as non-root
+USER storj
+ENTRYPOINT ["/entrypoint"]
