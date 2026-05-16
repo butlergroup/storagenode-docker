@@ -1,8 +1,5 @@
-ARG DOCKER_PLATFORM
-ARG DOCKER_ARCH
-
-# upgrade from debian to Chainguard static
-FROM --platform=${DOCKER_PLATFORM:-linux/amd64} ${DOCKER_ARCH:-amd64}/chainguard/static:latest
+# upgrade from Debian to Chainguard Wolfi
+FROM chainguard/wolfi-base:latest
 ARG GOARCH
 ARG VERSION_SERVER_URL
 ARG SUPERVISOR_SERVER
@@ -10,13 +7,17 @@ ENV GOARCH=${GOARCH:-amd64} \
     VERSION_SERVER_URL=${VERSION_SERVER_URL:-https://version.storj.io} \
     SUPERVISOR_SERVER=${SUPERVISOR_SERVER:-unix}
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends ca-certificates supervisor unzip wget
+RUN apk update
+RUN apk add --no-cache \
+    ca-certificates \
+    supervisor \
+    unzip \
+    wget
 RUN update-ca-certificates
 
 # add non-root user
-RUN groupadd -g 10001 storj && \
-    useradd -u 10001 -g storj -d /app -s /usr/sbin/nologin storj
+RUN addgroup -g 10001 storj && \
+    adduser -D -u 10001 -G storj -h /app -s /sbin/nologin storj
 
 RUN mkdir -p /var/log/supervisor /app
 
