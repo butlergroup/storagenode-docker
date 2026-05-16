@@ -45,7 +45,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64/v8,linux/arm/v5
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/storagenode:latest
             ${{ secrets.DOCKER_USERNAME }}/storagenode:${{ github.sha }}
