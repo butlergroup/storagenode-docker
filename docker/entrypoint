@@ -104,8 +104,8 @@ else
   /etc/supervisor/supervisord.conf
 
   # remove explicit user flag when container is run as non-root
-  if [ $EUID != "0" ]; then
-     sed -i "s#^user=root##" /etc/supervisor/supervisord.conf
+  if [ "$(id -u)" != "0" ]; then
+    sed -i '/^user=root$/d' /etc/supervisor/supervisord.conf
   fi
 
   #
