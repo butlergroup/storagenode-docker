@@ -1,8 +1,8 @@
 ARG DOCKER_PLATFORM
 ARG DOCKER_ARCH
 
-# upgrade debian from bookworm to trixie
-FROM --platform=${DOCKER_PLATFORM:-linux/amd64} ${DOCKER_ARCH:-amd64}/debian:trixie-slim
+# upgrade from debian to Chainguard static
+FROM --platform=${DOCKER_PLATFORM:-linux/amd64} ${DOCKER_ARCH:-amd64}/chainguard/static:latest
 ARG GOARCH
 ARG VERSION_SERVER_URL
 ARG SUPERVISOR_SERVER
