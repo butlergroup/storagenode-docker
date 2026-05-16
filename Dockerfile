@@ -45,5 +45,4 @@ ENV ADDRESS="" \
 
 # run container as non-root
 USER storj
-# ENTRYPOINT ["/entrypoint"]
-CMD ["/bin/bash", "-c", "tail -f /dev/null"]
+ENTRYPOINT ["/entrypoint"]
