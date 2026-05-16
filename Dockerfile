@@ -1,7 +1,8 @@
 ARG DOCKER_PLATFORM
 ARG DOCKER_ARCH
 
-FROM --platform=${DOCKER_PLATFORM:-linux/amd64} ${DOCKER_ARCH:-amd64}/debian:bookworm-slim
+# upgrade debian from bookworm to trixie
+FROM --platform=${DOCKER_PLATFORM:-linux/amd64} ${DOCKER_ARCH:-amd64}/debian:trixie-slim
 ARG GOARCH
 ARG VERSION_SERVER_URL
 ARG SUPERVISOR_SERVER
