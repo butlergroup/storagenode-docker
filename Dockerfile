@@ -23,7 +23,7 @@ COPY docker/ /
 
 # set permissions to allow non-root access but non-world-writable
 RUN chown -R storj:storj /etc/supervisor /var/log/supervisor /app && \
-    chmod -R u+rwX,g+rX,o-rwx /etc/supervisor /var/log/supervisor /app
+    chmod -R u+rw,g+rw,o-rwx /etc/supervisor /var/log/supervisor /app
 # remove the default supervisord.conf
 RUN rm -rf /etc/supervisord.conf
 # create a symlink to custom supervisord config file at the default location
