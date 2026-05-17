@@ -3,6 +3,7 @@ name: Build and Push Storagenode
 on:
   push:
     branches: [main]
+  pull_request:
 
 permissions:
   contents: read
@@ -17,7 +18,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -45,7 +46,19 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm,windows/amd64,freebsd/amd64,darwin/amd64,darwin/arm64
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/storagenode:latest
             ${{ secrets.DOCKER_USERNAME }}/storagenode:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/storagenode:${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
+        with:
+          sarif_file: "trivy-results.sarif"
