@@ -7,7 +7,6 @@ ENV GOARCH=${GOARCH:-amd64} \
     VERSION_SERVER_URL=${VERSION_SERVER_URL:-https://version.storj.io} \
     SUPERVISOR_SERVER=${SUPERVISOR_SERVER:-unix}
 
-RUN apk update
 RUN apk add --no-cache \
     ca-certificates \
     supervisor \
