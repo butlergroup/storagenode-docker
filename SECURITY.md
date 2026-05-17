@@ -11,4 +11,6 @@ The following versions of storagenode-docker are supported under a Service Level
 
 ## Reporting a Vulnerability
 
-Report any vulnerabilities found to: dev@butlergroup.net
+If you believe you've found a security vulnerability, please send your report to security-reports@storj.io and dev@butlergroup.net
+
+We greatly value security, and we may publicly thank you for your report, although we keep your name confidential if you request it.
