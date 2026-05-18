@@ -5,17 +5,10 @@
 
 version: 2
 updates:
-  # Enable version updates for docker
-  - package-ecosystem: "docker"
-    directory: "/"
-    schedule:
-      interval: "cron"
-      cronjob: "15 4 * * *"
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     # Workflow files stored in the default location of `.github/workflows`
     # You don't need to specify `/.github/workflows` for `directory`. You can use `directory: "/"`.
     directory: "/" # Location of package manifests
     schedule:
-      interval: "cron"
-      cronjob: "15 4 * * *"
+      interval: "daily"

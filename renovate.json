@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "dockerfile"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "cgr.dev/chainguard/wolfi-base"
+      ],
+      "groupName": "wolfi-base",
+      "automerge": true,
+      "pinDigests": true
+    }
+  ]
+}
