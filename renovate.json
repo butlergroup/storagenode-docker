@@ -6,17 +6,7 @@
   "enabledManagers": [
     "dockerfile"
   ],
-  "packageRules": [
-    {
-      "matchDatasources": [
-        "docker"
-      ],
-      "matchPackageNames": [
-        "cgr.dev/chainguard/wolfi-base"
-      ],
-      "groupName": "wolfi-base",
-      "automerge": true,
-      "pinDigests": true
-    }
-  ]
+  "automerge": true,
+  "platformAutomerge": true,
+  "pinDigests": true
 }
