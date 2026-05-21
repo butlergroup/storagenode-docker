@@ -2,6 +2,7 @@
 [![CodeQL](https://github.com/butlergroup/storagenode-docker/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/butlergroup/storagenode-docker/actions/workflows/github-code-scanning/codeql)
 [![Build/CI](https://github.com/butlergroup/storagenode-docker/actions/workflows/build.yaml/badge.svg)](https://github.com/butlergroup/storagenode-docker/actions/workflows/build.yaml)
 [![Dependabot Updates](https://github.com/butlergroup/storagenode-docker/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/butlergroup/storagenode-docker/actions/workflows/dependabot/dependabot-updates)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12892/badge)](https://www.bestpractices.dev/projects/12892)
 [![OSV-Scanner](https://github.com/butlergroup/storagenode-docker/actions/workflows/osv-scanner.yml/badge.svg)](https://github.com/butlergroup/storagenode-docker/actions/workflows/osv-scanner.yml)
 [![Snyk Security-Monitored](https://img.shields.io/badge/Snyk%20Security-Monitored-purple)](https://app.snyk.io/share/784f6fef-6aaf-47ed-81ba-99e05b854665)
 [![Scorecard supply-chain security](https://github.com/butlergroup/storagenode-docker/actions/workflows/scorecard.yml/badge.svg)](https://github.com/butlergroup/storagenode-docker/actions/workflows/scorecard.yml)
@@ -20,7 +21,7 @@ Auto-updated Storagenode container for Storj network
 
 ## Sponsorship/Donation
 
-Sponsorships/Donations are happily accepted via Github Sponsors, or via Storj at 0x6E86f2734372ee559E62e6AB04Edc2b0455A86bF (my cats and I need to eat!)
+Sponsorships/Donations are happily accepted via Github Sponsors, or via Storj at 0x6E86f2734372ee559E62e6AB04Edc2b0455A86bF
 
 ## Contribution
 
