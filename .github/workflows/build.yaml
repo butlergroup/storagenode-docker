@@ -49,7 +49,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64,linux/arm,windows/amd64,freebsd/amd64,darwin/amd64
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/storagenode:latest \
+            ${{ secrets.DOCKER_USERNAME }}/storagenode:latest
             ${{ secrets.DOCKER_USERNAME }}/storagenode:${{ github.sha }}
 
       - name: Run Trivy vulnerability scanner
