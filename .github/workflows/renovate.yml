@@ -117,16 +117,6 @@ jobs:
           echo "::add-mask::$token"
           echo "token=$token" >> "$GITHUB_OUTPUT"
 
-      - name: Merge bot PR
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: |
-          gh pr merge \
-            --merge \
-            --delete-branch \
-            "$PR_URL"
-
       - name: Run Renovate
         uses: renovatebot/github-action@2d941ef4e268e53affdc1f11365c69a73e544f50 # v43.0.14
         env:
