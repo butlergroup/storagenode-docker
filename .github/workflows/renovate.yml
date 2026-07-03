@@ -140,7 +140,6 @@ jobs:
                     "checks": "read",
                     "actions": "write",
                     "issues": "write",
-                    "dependabot_alerts": "read",
                     "workflows": "write"
                   },
                 }')"
