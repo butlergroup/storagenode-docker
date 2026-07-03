@@ -140,7 +140,7 @@ jobs:
                     "checks": "read",
                     "actions": "write",
                     "issues": "write",
-                    "security-events": "read",
+                    "dependabot_alerts": "read",
                     "workflows": "write"
                   },
                 }')"
