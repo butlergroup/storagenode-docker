@@ -1,5 +1,5 @@
 # upgrade from Debian to Chainguard Wolfi
-FROM cgr.dev/chainguard/wolfi-base:latest@sha256:6f31b0949fe7d8133f3e632bfa654339845cfb7410f2ca55a0217c85d36baf6d
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:b276659bae920528545f9efff33ac4af5b5e32e5055a304f23d042d829a5f018
 ARG GOARCH
 ARG VERSION_SERVER_URL
 ARG SUPERVISOR_SERVER
