@@ -3,6 +3,7 @@ set -euo pipefail
 
 BINARY_DIR=/app/bin
 BINARY_STORE_DIR=${BINARY_STORE_DIR:-/app/config/bin}
+AUTO_UPDATE=${AUTO_UPDATE:-true}
 
 get_default_url() {
   process=$1
@@ -12,6 +13,10 @@ get_default_url() {
 
 copy_binary() {
   binary=$1
+  if [ ! -x "${BINARY_STORE_DIR}/${binary}" ]; then
+      echo "ERROR: Required binary ${BINARY_STORE_DIR}/${binary} is missing or not executable."
+      exit 1
+  fi
   mkdir -p "${BINARY_DIR}"
   cp "${BINARY_STORE_DIR}/${binary}" "${BINARY_DIR}/${binary}"
   chmod u+x "${BINARY_DIR}/${binary}"
@@ -23,47 +28,53 @@ get_binary() {
   wget -O "/tmp/${binary}.zip" "${url}"
   mkdir -p "${BINARY_STORE_DIR}"
   unzip -p "/tmp/${binary}.zip" > "${BINARY_STORE_DIR}/${binary}"
+  chmod u+x "${BINARY_STORE_DIR}/${binary}"
   rm "/tmp/${binary}.zip"
 }
 
 should_update() {
   binary=$1
-  copy_binary ${binary}
+  copy_binary "${binary}"
   for version in minimum suggested; do
-    if ${BINARY_DIR}/storagenode-updater should-update ${binary} \
+      if "${BINARY_DIR}/storagenode-updater" should-update "${binary}" \
           --binary-location "${BINARY_DIR}/${binary}" \
           --identity-dir identity \
           --version.server-address="${VERSION_SERVER_URL}" 2>/dev/null
-    then
-      echo "downloading ${binary}"
-      get_binary ${binary} "$(get_default_url ${binary} ${version})"
-      copy_binary ${binary}
-    else
-      break
-    fi
+      then
+          echo "Downloading update for ${binary}"
+          get_binary "${binary}" "$(get_default_url "${binary}" "${version}")"
+          copy_binary "${binary}"
+      else
+          break
+      fi
   done
 }
+
+# Prepare binary directories.
+mkdir -p "${BINARY_DIR}" "${BINARY_STORE_DIR}"
 
 # install storagenode and storagenode-updater binaries
 # during run of the container to not to release new docker image
 # on each new version of the storagenode binary.
-for binary in storagenode-updater storagenode; do
-    if [ ! -x "${BINARY_STORE_DIR}/${binary}" ]; then
-        if [ "${AUTO_UPDATE:-true}" = "false" ]; then
-            echo "ERROR: ${binary} is missing and AUTO_UPDATE=false"
-            exit 1
+# Install or update binaries only when AUTO_UPDATE=true.
+if [ "${AUTO_UPDATE}" = "true" ]; then
+    echo "Automatic updates ENABLED."
+    for binary in storagenode-updater storagenode; do
+        if [ ! -x "${BINARY_STORE_DIR}/${binary}" ]; then
+            echo "Installing initial binary: ${binary}"
+            get_binary "${binary}" "$(get_default_url "${binary}" minimum)"
         fi
-        echo "Installing initial ${binary}"
-        get_binary "${binary}" "$(get_default_url "${binary}" minimum)"
-    fi
-    if [ "${AUTO_UPDATE:-true}" = "true" ]; then
         echo "Checking for updates: ${binary}"
         should_update "${binary}"
-    else
-        echo "Automatic updates disabled: ${binary}"
-    fi
-    copy_binary "${binary}"
-done
+        copy_binary "${binary}"
+    done
+else
+    echo "Automatic updates DISABLED."
+    echo "Using existing persistent binaries without downloading or updating."
+    for binary in storagenode-updater storagenode; do
+        copy_binary "${binary}"
+    done
+fi
 
 SUPERVISOR_SERVER="${SUPERVISOR_SERVER:-unix}"
 
@@ -72,10 +83,6 @@ RUN_PARAMS="${RUN_PARAMS} --identity-dir identity"
 
 if [ -n "${VERSION_SERVER_URL:-}" ]; then
   RUN_PARAMS="${RUN_PARAMS} --version.server-address=${VERSION_SERVER_URL}"
-fi
-
-if [ "${AUTO_UPDATE:-}" != "true" ]; then
-  AUTO_UPDATE="false"
 fi
 
 : ${STORJ_CONSOLE_ADDRESS:=0.0.0.0:14002}
@@ -102,47 +109,50 @@ if [ -n "${LOG_LEVEL:-}" ]; then
 fi
 
 if [ "${SETUP:-}" = "true" ]; then
-  echo "Running ${BINARY_DIR}/storagenode setup $SNO_RUN_PARAMS ${*}"
-  exec ${BINARY_DIR}/storagenode setup ${SNO_RUN_PARAMS} ${*}
+    echo "Running ${BINARY_DIR}/storagenode setup ${SNO_RUN_PARAMS} ${*}"
+    exec ${BINARY_DIR}/storagenode setup ${SNO_RUN_PARAMS} ${*}
 else
-  sed -i \
-  "s#^command=/app/bin/storagenode-updater\$#command=${BINARY_DIR}/storagenode-updater run --binary-location ${BINARY_DIR}/storagenode ${RUN_PARAMS} #" \
-  /etc/supervisor/supervisord.conf
-
-  sed -i \
-  "s#^command=/app/bin/storagenode\$#command=${BINARY_DIR}/storagenode run ${SNO_RUN_PARAMS} ${*}#" \
-  /etc/supervisor/supervisord.conf
-
-  # remove explicit user flag when container is run as non-root
-  if [ "$(id -u)" != "0" ]; then
-    sed -i '/^user=root$/d' /etc/supervisor/supervisord.conf
-  fi
-
-  #
-  case ${SUPERVISOR_SERVER} in
-  	unix) # default
-  	;;
-  	public_port)
-  	  # replace unix_http_server section to inet_http_server
-  		sed -i "s#^\[unix_http_server\]\$#\[inet_http_server\]#" /etc/supervisor/supervisord.conf
-  		# replace unix socket file with tcp public port
-      sed -i "s#^file=/etc/supervisor/supervisor.sock\$#port=*:9001#" /etc/supervisor/supervisord.conf
-      # set server url to http server address
-      sed -i "s#^serverurl=unix:///etc/supervisor/supervisor.sock\$#serverurl=http://127.0.0.1:9001#" /etc/supervisor/supervisord.conf
-  	;;
-  	private_port)
-  	  # replace unix_http_server section to inet_http_server
-  		sed -i "s#^\[unix_http_server\]\$#\[inet_http_server\]#" /etc/supervisor/supervisord.conf
-  		# replace unix socket file with tcp private port .i.e. listens on only localhost
-      sed -i "s#^file=/etc/supervisor/supervisor.sock\$#port=127.0.0.1:9001#" /etc/supervisor/supervisord.conf
-       # set server url to http server address
-      sed -i "s#^serverurl=unix:///etc/supervisor/supervisor.sock\$#serverurl=http://127.0.0.1:9001#" /etc/supervisor/supervisord.conf
-  	;;
-  	*)
-  		echo "Invalid value '${SUPERVISOR_SERVER}' for SUPERVISOR_SERVER. Expected 'unix', 'public_port' or 'private_port'"
-  		exit 1
-  	;;
-  esac
-
-  exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    if [ "${AUTO_UPDATE}" = "true" ]; then
+        echo "Configuring Supervisor to run storagenode-updater."
+        sed -i \
+            "s#^command=/app/bin/storagenode-updater\$#command=${BINARY_DIR}/storagenode-updater run --binary-location ${BINARY_DIR}/storagenode ${RUN_PARAMS} #" \
+            /etc/supervisor/supervisord.conf
+    else
+        echo "Configuring Supervisor to run storagenode directly."
+        sed -i \
+            "s#^command=/app/bin/storagenode-updater\$#command=${BINARY_DIR}/storagenode run ${SNO_RUN_PARAMS} ${*}#" \
+            /etc/supervisor/supervisord.conf
+    fi
+    sed -i \
+        "s#^command=/app/bin/storagenode\$#command=${BINARY_DIR}/storagenode run ${SNO_RUN_PARAMS} ${*}#" \
+        /etc/supervisor/supervisord.conf
+    # Remove explicit user flag when running as non-root.
+    if [ "$(id -u)" != "0" ]; then
+        sed -i '/^user=root$/d' /etc/supervisor/supervisord.conf
+    fi
+    case ${SUPERVISOR_SERVER} in
+        unix)
+            ;;
+        public_port)
+          # replace unix_http_server section to inet_http_server
+          sed -i "s#^\[unix_http_server\]\$#\[inet_http_server\]#" /etc/supervisor/supervisord.conf
+          # replace unix socket file with tcp public port
+          sed -i "s#^file=/etc/supervisor/supervisor.sock\$#port=*:9001#" /etc/supervisor/supervisord.conf
+          # set server url to http server address
+          sed -i "s#^serverurl=unix:///etc/supervisor/supervisor.sock\$#serverurl=http://127.0.0.1:9001#" /etc/supervisor/supervisord.conf
+        ;;
+        private_port)
+          # replace unix_http_server section to inet_http_server
+          sed -i "s#^\[unix_http_server\]\$#\[inet_http_server\]#" /etc/supervisor/supervisord.conf
+          # replace unix socket file with tcp private port .i.e. listens on only localhost
+          sed -i "s#^file=/etc/supervisor/supervisor.sock\$#port=127.0.0.1:9001#" /etc/supervisor/supervisord.conf
+          # set server url to http server address
+          sed -i "s#^serverurl=unix:///etc/supervisor/supervisor.sock\$#serverurl=http://127.0.0.1:9001#" /etc/supervisor/supervisord.conf
+        ;;
+        *)
+          echo "Invalid value '${SUPERVISOR_SERVER}' for SUPERVISOR_SERVER. Expected 'unix', 'public_port' or 'private_port'"
+          exit 1
+      ;;
+    esac
+    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
 fi
