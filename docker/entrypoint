@@ -49,10 +49,16 @@ should_update() {
 # on each new version of the storagenode binary.
 for binary in storagenode-updater storagenode; do
   if [ ! -f "${BINARY_STORE_DIR}/${binary}" ]; then
-    echo "downloading ${binary}"
+    echo "downloading initial ${binary}"
     get_binary ${binary} "$(get_default_url ${binary} minimum)"
   fi
-  should_update ${binary}
+  if [ "${AUTO_UPDATE:-true}" = "true" ]; then
+    echo "Checking for updates: ${binary}"
+    should_update ${binary}
+  else
+    echo "Automatic updates disabled; using stored ${binary}"
+    copy_binary ${binary}
+  fi
 done
 
 SUPERVISOR_SERVER="${SUPERVISOR_SERVER:-unix}"
