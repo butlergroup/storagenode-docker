@@ -40,7 +40,7 @@ ENV ADDRESS="" \
     WALLET="" \
     STORAGE="2.0TB" \
     SETUP="false" \
-    AUTO_UPDATE="true" \
+    AUTO_UPDATE="false" \
     LOG_LEVEL="" \
     BINARY_STORE_DIR="/app/config/bin"
 
