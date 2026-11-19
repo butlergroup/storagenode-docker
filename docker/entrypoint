@@ -48,17 +48,21 @@ should_update() {
 # during run of the container to not to release new docker image
 # on each new version of the storagenode binary.
 for binary in storagenode-updater storagenode; do
-  if [ ! -f "${BINARY_STORE_DIR}/${binary}" ]; then
-    echo "downloading initial ${binary}"
-    get_binary ${binary} "$(get_default_url ${binary} minimum)"
-  fi
-  if [ "${AUTO_UPDATE:-true}" = "true" ]; then
-    echo "Checking for updates: ${binary}"
-    should_update ${binary}
-  else
-    echo "Automatic updates disabled; using stored ${binary}"
-    copy_binary ${binary}
-  fi
+    if [ ! -x "${BINARY_STORE_DIR}/${binary}" ]; then
+        if [ "${AUTO_UPDATE:-true}" = "false" ]; then
+            echo "ERROR: ${binary} is missing and AUTO_UPDATE=false"
+            exit 1
+        fi
+        echo "Installing initial ${binary}"
+        get_binary "${binary}" "$(get_default_url "${binary}" minimum)"
+    fi
+    if [ "${AUTO_UPDATE:-true}" = "true" ]; then
+        echo "Checking for updates: ${binary}"
+        should_update "${binary}"
+    else
+        echo "Automatic updates disabled: ${binary}"
+    fi
+    copy_binary "${binary}"
 done
 
 SUPERVISOR_SERVER="${SUPERVISOR_SERVER:-unix}"
